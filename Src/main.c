@@ -41,7 +41,13 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include <stdarg.h>
+#include <string.h>
+#include <stdint.h>
 
+#define BL_DEBUG_MSG_EN
+#define D_UART   &huart3
+#define C_UART   &huart2
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -64,7 +70,7 @@ static void MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+static void printmsg(char *format, ...);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -108,6 +114,8 @@ int main(void)
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+
+  uint32_t count;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -118,7 +126,18 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+      printmsg("Hello From user App...\r\n");
 
+      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
+
+      for (int i = 0; i < 20600000; i++)
+      {
+          count++;
+      }
+      count = 0;
   }
   /* USER CODE END 3 */
 
@@ -272,7 +291,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/* prints formatted string to console over UART */
+void printmsg(char *format, ...)
+{
+#ifdef BL_DEBUG_MSG_EN
+    char str[80];
+    memset(str, 0x00, sizeof(str));
 
+    /*Extract the the argument list using VA apis */
+    va_list args;
+    va_start(args, format);
+    vsprintf(str, format, args);
+    HAL_UART_Transmit(D_UART, (uint8_t *) str, strlen(str), HAL_MAX_DELAY);
+    va_end(args);
+#endif
+}
 /* USER CODE END 4 */
 
 /**
